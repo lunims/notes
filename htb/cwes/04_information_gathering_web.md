@@ -413,4 +413,93 @@ lunims@htb[/htb]$ python3 ReconSpider.py http://inlanefreight.com
 		* comments
 		* 
 
+# Search Engine Discovery
+* Open Source Intelligence (OSINT) gathering
+* using search engines for intelligence gathering
+* Search Operators:
+	* site: -> Limits results to a specific website or domain
+	* inurl: -> finds pages with a specific term in the URL
+	* filetype: -> searches for a particular file type
+	* intitle: -> finds pages with specific term in the title
+	* intext: / inbody: -> searches for a term within body text
+	* cache: -> displays the cached version of a webpage
+	* link: -> finds pages that link to a specific webpage
+	* related: -> finds websites related to a specific webpage
+	* ...
+* Google Dorking:
+	* leverages the power of search operators to uncover sensitive information, security vulnerabilities or hidden content on websites using Google search
+	* Examples:
+		* Finding login pages:
+			* - `site:example.com inurl:login`
+			* - `site:example.com (inurl:login OR inurl:admin)`
+		* Identifying exposed files:
+			* - `site:example.com filetype:pdf`
+			* - - `site:example.com (filetype:xls OR filetype:docx)`
+
+# Web Archives
+* Wayback Machine
+* digital archive of World Wide Web
+* uses web crawlers to capture snapshots of websites at regular intervals
+* 3 step process: Crawling -> Archiving -> Accessing
+* Recon:
+	* Uncovering hidden assets and vulnerabilities (old ones)
+	* Tracking Changes and Identifying patterns
+	* Gathering Intelligence
+	* Stealthy Reconnaissance
+
+#  Automating Recon
+* Recon Frameworks:
+	* FinalRecon 
+	* Recon-ng
+	* theHarvester
+	* SpiderFoot
+	* OSINT Framework
+### FinalRecon
+* information:
+	* Header Information
+	* Whois Lookup
+	* SSL Certificate Information
+	* Crawler
+	* DNS Enumeration
+	* Subdomain Enumeration
+	* Directory Enumeration
+	* Wayback machine
+```shellsession
+lunims@htb[/htb]$ git clone https://github.com/thewhiteh4t/FinalRecon.git lunims@htb[/htb]$ cd FinalRecon lunims@htb[/htb]$ pip3 install -r requirements.txt
+lunims@htb[/htb]$ chmod +x ./finalrecon.py 
+lunims@htb[/htb]$ ./finalrecon.py --help 
+```
+* Options
+	* --url target URL
+	* --headers retrieve header information
+	* --sslinfo get ssl cert info
+	* --whois perform WhoIs lookup
+	* --crawl Crawl target
+	* --dns perform dns enumeration
+	* --sub enumerate subdomains
+	* --dir search for directories
+	* --wayback retrieve wayback URLs
+	* --ps perform fast port scan
+	* --full perform a full recon scan on target
+
 # Skill Assessments
+* Scrapy:
+```shellsession
+pip3 install scrapy  
+wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip  
+unzip ReconSpider.zip  
+python3 ReconSpider.py http://inlanefreight.htb:34677  
+cat results.json | jq ".comments"
+```
+
+### Final
+1. Query Whois for inlanefreight
+```
+whois inlanefreight.com
+```
+
+2. Look at Server sent server header:
+```
+curl -I 154.57.164.73:30641
+```
+3. 
