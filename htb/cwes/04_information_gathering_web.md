@@ -502,4 +502,88 @@ whois inlanefreight.com
 ```
 curl -I 154.57.164.73:30641
 ```
-3. 
+3. Enumerate VHosts first:
+```
+gobuster vhost -u http://inlanefreight.htb:32767 -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-110000.txt --append-domain
+===============================================================
+Gobuster v3.8.2
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                       http://inlanefreight.htb:32767
+[+] Method:                    GET
+[+] Threads:                   10
+[+] Wordlist:                  /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+[+] User Agent:                gobuster/3.8.2
+[+] Timeout:                   10s
+[+] Append Domain:             true
+[+] Exclude Hostname Length:   false
+===============================================================
+Starting gobuster in VHOST enumeration mode
+===============================================================
+#www.inlanefreight.htb:32767 Status: 400 [Size: 157]
+#mail.inlanefreight.htb:32767 Status: 400 [Size: 157]
+#smtp.inlanefreight.htb:32767 Status: 400 [Size: 157]
+#pop3.inlanefreight.htb:32767 Status: 400 [Size: 157]
+web1337.inlanefreight.htb:32767 Status: 200 [Size: 104]
+Progress: 114442 / 114442 (100.00%)
+===============================================================
+Finished
+===============================================================
+
+```
+Add new found subdomain to /etc/hosts
+When looking at robots.txt, we find directory admin_h1dd3n. Enumerate this with gobuster:
+```
+└─$ gobuster dir -u http://web1337.inlanefreight.htb:32767/admin_h1dd3n/ -w /usr/share/wordlists/dirb/common.txt 
+===============================================================
+Gobuster v3.8.2
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://web1337.inlanefreight.htb:32767/admin_h1dd3n/
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.8.2
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+index.html           (Status: 200) [Size: 255]
+Progress: 4613 / 4613 (100.00%)
+===============================================================
+Finished
+===============================================================
+
+```
+And we found index.html, where we will find the answer to question 3.
+
+4. Since web1337.inlanefreight.htb is a dead-end crawling wise, let's look further for subdomains here:
+```
+└─$ gobuster vhost -u http://web1337.inlanefreight.htb:32767 -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt --append-domain
+===============================================================
+Gobuster v3.8.2
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                       http://web1337.inlanefreight.htb:32767
+[+] Method:                    GET
+[+] Threads:                   10
+[+] Wordlist:                  /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+[+] User Agent:                gobuster/3.8.2
+[+] Timeout:                   10s
+[+] Append Domain:             true
+[+] Exclude Hostname Length:   false
+===============================================================
+Starting gobuster in VHOST enumeration mode
+===============================================================
+dev.web1337.inlanefreight.htb:32767 Status: 200 [Size: 123]
+```
+We find a dev. subdomain which we can use ReconSpider on.
+In results.json we can find the email
+```
+cat results.json | jq ".emails"
+```
+5. Answer:
+```
+cat results.json | jq ".comments"
+```
